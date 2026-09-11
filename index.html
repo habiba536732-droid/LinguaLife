@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Live Language World</title>
+<style>
+:root{--bg:#07111f;--panel:rgba(10,18,31,.86);--line:rgba(255,255,255,.12);--text:#f4f7fb;--muted:#9eabbc;--accent:#6ee7ff;--good:#62e6a7;--warn:#ffd166}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}
+canvas{display:block}.hud{position:fixed;inset:0;pointer-events:none}.top{display:flex;gap:10px;align-items:center;padding:14px}.brand,.pill,.panel,.quest,.phone,.dialogue,.customize{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(16px);box-shadow:0 18px 50px rgba(0,0,0,.25)}.brand{padding:10px 14px;border-radius:15px;font-weight:800;letter-spacing:.2px}.pill{padding:9px 12px;border-radius:999px;font-size:13px;color:var(--muted)}.pill b{color:var(--text)}button{border:0;border-radius:12px;padding:11px 14px;background:#fff;color:#08101c;font-weight:800;cursor:pointer}button.secondary{background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--line)}button.accent{background:var(--accent)}button:active{transform:translateY(1px)}.right{position:absolute;right:14px;top:76px;width:310px;display:flex;flex-direction:column;gap:10px}.panel{border-radius:18px;padding:14px}.panel h3{margin:0 0 10px;font-size:14px}.muted{color:var(--muted);font-size:12px}.quest{border-radius:16px;padding:13px}.quest .title{font-weight:800}.bar{height:6px;border-radius:10px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:10px}.bar>i{display:block;height:100%;width:35%;background:var(--accent)}.bottom{position:absolute;left:14px;right:14px;bottom:14px;display:flex;justify-content:space-between;align-items:end}.hint{padding:10px 13px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:13px}.actions{display:flex;gap:8px;pointer-events:auto}.actions button{min-width:48px}.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.modal.show{display:flex}.dialogue,.customize,.phone{width:min(650px,100%);border-radius:22px;padding:20px;pointer-events:auto}.dialogue-head{display:flex;justify-content:space-between;align-items:center}.dialogue h2{margin:0}.bubble{margin:14px 0;padding:14px;border-radius:15px;background:rgba(255,255,255,.06);line-height:1.5;min-height:60px}.row{display:flex;gap:8px}.row>*{flex:1}.input{width:100%;background:#050b14;color:#fff;border:1px solid var(--line);padding:13px;border-radius:12px;outline:none}.mic{display:flex;align-items:center;gap:8px}.mic.on{background:#ff5c7a;color:#fff}.choice{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.choice button{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line)}.phone{max-width:390px}.phone-screen{background:#02060c;border-radius:18px;padding:14px;min-height:430px}.msg{padding:10px 12px;border-radius:15px;margin:7px 0;max-width:82%;line-height:1.35}.npcmsg{background:#162235}.usermsg{background:#0c5148;margin-left:auto}.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1}.customize-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.swatch{padding:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px}.swatch select{width:100%;margin-top:6px;background:#0a1320;color:#fff;border:1px solid var(--line);padding:8px;border-radius:8px}.map{position:fixed;left:14px;top:76px;width:220px;height:140px;border-radius:18px;background:rgba(2,7,13,.72);border:1px solid var(--line);pointer-events:none;overflow:hidden}.map .road{position:absolute;background:rgba(255,255,255,.12)}.map .dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 15px var(--accent);transform:translate(-50%,-50%)}#touch{display:none;position:fixed;left:18px;bottom:25px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--line);z-index:5;pointer-events:auto}.stick{position:absolute;left:40px;top:40px;width:50px;height:50px;border-radius:50%;background:rgba(110,231,255,.45)}@media(max-width:850px){.right{width:260px;top:68px}.map{display:none}.top .pill:nth-of-type(n+3){display:none}}@media(pointer:coarse){#touch{display:block}.right{display:none}.bottom{bottom:18px}.hint{max-width:55%}}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div class="hud">
+  <div class="top">
+    <div class="brand">🌍 Live Language World</div>
+    <div class="pill">🇫🇷 Target: <b id="lang">French</b></div>
+    <div class="pill">📍 <b id="place">Paris Airport</b></div>
+    <div class="pill">XP <b id="xp">0</b></div>
+    <div class="pill">Words <b id="words">0</b></div>
+  </div>
+  <div class="map" id="map">
+    <div class="road" style="left:20px;right:20px;top:68px;height:3px"></div>
+    <div class="road" style="top:20px;bottom:20px;left:105px;width:3px"></div>
+    <div class="dot" id="mapDot" style="left:105px;top:68px"></div>
+  </div>
+  <div class="right">
+    <div class="quest">
+      <div class="muted">CURRENT OBJECTIVE</div>
+      <div class="title" id="questTitle">Find the check-in desk</div>
+      <div class="muted" id="questDesc">Walk to the airport agent and press E.</div>
+      <div class="bar"><i id="questBar"></i></div>
+    </div>
+    <div class="panel">
+      <h3>Learning happens in the background</h3>
+      <div class="muted">Listening <span id="s1">50%</span> · Speaking <span id="s2">50%</span> · Writing <span id="s3">50%</span></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="hint" id="hint">WASD / arrows to move · E to interact</div>
+    <div class="actions">
+      <button class="secondary" onclick="openPhone()">📱</button>
+      <button class="secondary" onclick="openCustomize()">🧍</button>
+      <button class="secondary" onclick="openMapHelp()">🗺️</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="dialogModal">
+  <div class="dialogue">
+    <div class="dialogue-head"><div><div class="muted" id="npcRole">NPC</div><h2 id="npcName">Airport Agent</h2></div><button class="secondary" onclick="closeModal('dialogModal')">✕</button></div>
+    <div class="bubble" id="npcBubble">Bonjour ! How can I help you?</div>
+    <div class="row">
+      <input id="chatInput" class="input" placeholder="Type in French…" autocomplete="off">
+      <button id="micBtn" class="mic secondary" onclick="toggleMic()">🎙️</button>
+      <button class="accent" onclick="sendChat()">Send</button>
+    </div>
+    <div class="choice" id="choices"></div>
+    <div class="muted" style="margin-top:12px">Speak naturally. The NPC is designed to continue the situation, not give you a quiz.</div>
+  </div>
+</div>
+
+<div class="modal" id="phoneModal">
+  <div class="phone">
+    <div class="dialogue-head"><h2>📱 Phone</h2><button class="secondary" onclick="closeModal('phoneModal')">✕</button></div>
+    <div class="tabs"><button class="secondary" onclick="phoneTab('messages')">Messages</button><button class="secondary" onclick="phoneTab('writing')">Write</button></div>
+    <div class="phone-screen" id="phoneScreen"></div>
+  </div>
+</div>
+
+<div class="modal" id="customizeModal">
+  <div class="customize">
+    <div class="dialogue-head"><h2>🧍 Character Lab</h2><button class="secondary" onclick="closeModal('customizeModal')">✕</button></div>
+    <p class="muted">Your appearance is saved locally on this device.</p>
+    <div class="customize-grid">
+      <div class="swatch">Skin<select id="skin"><option value="0xf0c8a0">Light</option><option value="0xc68642">Warm</option><option value="0x8d5524">Deep</option></select></div>
+      <div class="swatch">Outfit<select id="outfit"><option value="0x2d5bff">Blue</option><option value="0x252525">Black</option><option value="0x2f9e62">Green</option><option value="0xb44cff">Purple</option></select></div>
+      <div class="swatch">Hair<select id="hair"><option value="0x23170e">Dark</option><option value="0x8b4513">Brown</option><option value="0xdddddd">Light</option></select></div>
+      <div class="swatch">Style<select id="style"><option value="hoodie">Hoodie</option><option value="jacket">Jacket</option><option value="shirt">Shirt</option></select></div>
+    </div>
+    <button class="accent" style="margin-top:14px;width:100%" onclick="applyCharacter()">Save appearance</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+const state = JSON.parse(localStorage.getItem("llw_state") || "null") || {
+  xp:0, words:0, listening:.5, speaking:.5, writing:.5, quest:0,
+  language:"fr-FR", character:{skin:0xf0c8a0,outfit:0x2d5bff,hair:0x23170e,style:"hoodie"},
+  messages:[{from:"npc",text:"Bonjour ! Welcome to Paris. Your first stop is check-in."}]
+};
+const save=()=>localStorage.setItem("llw_state",JSON.stringify(state));
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x9fc9df);
+scene.fog=new THREE.Fog(0x9fc9df,35,90);
+
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,200);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+document.getElementById("game").appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xcfefff,0x293445,2.1));
+const sun=new THREE.DirectionalLight(0xffffff,2.3); sun.position.set(15,30,10); sun.castShadow=true; scene.add(sun);
+
+const world=new THREE.Group(); scene.add(world);
+function mat(c){return new THREE.MeshStandardMaterial({color:c,roughness:.78,metalness:.05})}
+function box(x,y,z,w,h,d,c){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;world.add(m);return m}
+function cyl(x,y,z,r,h,c){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),mat(c));m.position.set(x,y,z);m.castShadow=true;world.add(m);return m}
+
+// Airport terminal
+box(0,3,0,28,6,15,0xdfe7ee);
+box(0,7,0,26,2,13,0x26384d);
+box(0,4,-8,25,5,1,0x6ee7ff);
+for(let x=-11;x<=11;x+=5) box(x,3,-8.7,3.5,3.2,.3,0x17304a);
+box(0,.05,0,100,.1,100,0x6e7780);
+box(0,.08,18,100,.1,20,0x34414d);
+
+// Roads / terminal approach
+for(let z=12;z<55;z+=6) box(0,.12,z,4,.08,3,0xe7e7d8);
+for(let x=-35;x<35;x+=7) box(x,.13,25,4,.08,2,0xe7e7d8);
+
+// Decorative city blocks
+for(let x=-32;x<=32;x+=8){for(let z=28;z<=55;z+=8){const h=3+Math.abs(Math.sin(x*z))*6;box(x,h/2,z,5,h,5,0x667b91)}}
+
+// NPC creator
+const npcs=[];
+function makeNpc(name,role,x,z,color=0xffb27a){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.25,6,12),mat(color)); body.position.y=1.25; body.castShadow=true; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.43,16,12),mat(0xd7a06f)); head.position.y=2.25; head.castShadow=true; g.add(head);
+  g.position.set(x,0,z); world.add(g);
+  const npc={name,role,group:g};
+  npcs.push(npc); return npc;
+}
+const agent=makeNpc("Camille","Airport check-in agent",-4,-5,0x4c79ff);
+makeNpc("Luc","Information desk",7,-5,0x62a86e);
+makeNpc("Mina","Taxi driver",4,17,0xf09a4a);
+
+const player=new THREE.Group();
+const skinMat=mat(state.character.skin), outfitMat=mat(state.character.outfit), hairMat=mat(state.character.hair);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.55,1.3,6,12),outfitMat); body.position.y=1.25; body.castShadow=true; player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.43,16,12),skinMat); head.position.y=2.25; head.castShadow=true; player.add(head);
+const hair=new THREE.Mesh(new THREE.SphereGeometry(.46,16,8,0,Math.PI*2,0,Math.PI*.45),hairMat); hair.position.y=2.43; hair.castShadow=true; player.add(hair);
+player.position.set(0,0,10); world.add(player);
+
+const keys={};
+addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==="e") interact();});
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+const clock=new THREE.Clock();
+function update(){
+  const dt=Math.min(clock.getDelta(),.04);
+  let x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
+  let z=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  const v=new THREE.Vector3(x,0,z);
+  if(v.lengthSq()){v.normalize();player.position.addScaledVector(v,5.2*dt);player.rotation.y=Math.atan2(v.x,v.z)}
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-44,44);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-12,58);
+  camera.position.lerp(new THREE.Vector3(player.position.x,6.2,player.position.z+9),.08);
+  camera.lookAt(player.position.x,1.3,player.position.z);
+  const dot=document.getElementById("mapDot");
+  dot.style.left=(105+player.position.x*2.1)+"px";
+  dot.style.top=(68+(player.position.z-10)*1.0)+"px";
+  renderer.render(scene,camera); requestAnimationFrame(update);
+}
+update();
+
+function nearestNpc(){
+  let best=null,d=999;
+  for(const n of npcs){const dd=n.group.position.distanceTo(player.position);if(dd<d){d=dd;best=n}}
+  return d<3.5?best:null;
+}
+window.interact=()=>{
+  const n=nearestNpc();
+  if(!n){setHint("Move closer to a character.");return}
+  openDialogue(n);
+};
+function setHint(t){document.getElementById("hint").textContent=t}
+function openDialogue(n){
+  document.getElementById("dialogModal").classList.add("show");
+  document.getElementById("npcName").textContent=n.name;
+  document.getElementById("npcRole").textContent=n.role;
+  document.getElementById("npcBubble").textContent=n===agent
+    ?"Bonjour ! Do you have a reservation?":"Bonjour ! How can I help you?";
+  const choices=document.getElementById("choices");choices.innerHTML="";
+  ["I have a reservation.","I need help with my flight.","Could you repeat that, please?"].forEach(t=>{
+    const b=document.createElement("button");b.textContent=t;b.onclick=()=>{document.getElementById("chatInput").value=t;sendChat()};choices.appendChild(b)
+  });
+}
+window.closeModal=id=>document.getElementById(id).classList.remove("show");
+
+function npcReply(text){
+  const t=text.toLowerCase();
+  let reply;
+  if(/reservation|réservation|booking/.test(t)) reply="Très bien. May I have your name, please?";
+  else if(/help|aide|flight|vol/.test(t)) reply="Of course. What is your flight number?";
+  else if(/repeat|répéter|again/.test(t)) reply="Bien sûr. I'll say it more slowly: What is your flight number?";
+  else if(/name|nom/.test(t)) reply="Merci. Please show me your passport and your ticket.";
+  else reply="D'accord. I understand. What would you like to do next?";
+  return reply;
+}
+window.sendChat=()=>{
+  const input=document.getElementById("chatInput"),text=input.value.trim();if(!text)return;
+  const reply=npcReply(text);
+  document.getElementById("npcBubble").textContent=reply;
+  state.xp+=5;state.words+=Math.max(1,text.split(/\s+/).length);
+  state.listening=Math.min(1,state.listening+.015);state.speaking=Math.min(1,state.speaking+.02);
+  state.messages.push({from:"me",text},{from:"npc",text:reply});save();refresh();
+  input.value="";
+  if(state.quest===0 && /reservation|booking|réservation|name|nom/.test(text.toLowerCase())) completeQuest();
+};
+document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat()});
+
+let recognition=null;
+window.toggleMic=()=>{
+  const btn=document.getElementById("micBtn");
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Speech recognition is not supported in this browser. Use Chrome/Edge on a supported device.");return}
+  if(recognition){recognition.stop();return}
+  recognition=new SR();recognition.lang=state.language;recognition.interimResults=true;
+  recognition.onstart=()=>{btn.classList.add("on");btn.textContent="⏹️"};
+  recognition.onend=()=>{btn.classList.remove("on");btn.textContent="🎙️";recognition=null};
+  recognition.onresult=e=>{
+    let final="";
+    for(let i=e.resultIndex;i<e.results.length;i++) final+=e.results[i][0].transcript;
+    document.getElementById("chatInput").value=final;
+    if(e.results[e.results.length-1].isFinal) sendChat();
+  };
+  recognition.start();
+};
+
+function completeQuest(){
+  if(state.quest!==0)return;
+  state.quest=1;state.xp+=25;save();refresh();
+  setHint("Great. Now find the information desk.");
+}
+const quests=[
+ ["Find the check-in desk","Walk to the airport agent and press E."],
+ ["Ask for your flight information","Use voice or text and respond naturally."],
+ ["Open your phone and write a message","Write a short message to your hotel."],
+ ["Leave the airport","Walk toward the taxi pickup area."]
+];
+function refresh(){
+ document.getElementById("xp").textContent=state.xp;
+ document.getElementById("words").textContent=state.words;
+ const q=quests[Math.min(state.quest,quests.length-1)];
+ document.getElementById("questTitle").textContent=q[0];
+ document.getElementById("questDesc").textContent=q[1];
+ document.getElementById("questBar").style.width=((state.quest/3)*100+25)+"%";
+ document.getElementById("s1").textContent=Math.round(state.listening*100)+"%";
+ document.getElementById("s2").textContent=Math.round(state.speaking*100)+"%";
+ document.getElementById("s3").textContent=Math.round(state.writing*100)+"%";
+}
+refresh();
+
+window.openPhone=()=>{document.getElementById("phoneModal").classList.add("show");phoneTab("messages")};
+window.phoneTab=tab=>{
+ const s=document.getElementById("phoneScreen");
+ if(tab==="messages"){
+   s.innerHTML='<h3>Messages</h3>'+state.messages.map(m=>`<div class="msg ${m.from==="npc"?"npcmsg":"usermsg"}">${escapeHtml(m.text)}</div>`).join("");
+ }else{
+   s.innerHTML=`<div class="muted">WRITING MISSION</div><h3>Message your hotel</h3><p class="muted">You arrive late tonight. Tell the hotel that your flight has been delayed.</p><textarea id="writingBox" class="input" rows="7" placeholder="Write in French…"></textarea><button class="accent" style="width:100%;margin-top:10px" onclick="submitWriting()">Send message</button>`;
+ }
+};
+window.submitWriting=()=>{
+ const el=document.getElementById("writingBox"),t=el.value.trim();if(!t)return;
+ state.writing=Math.min(1,state.writing+.08);state.words+=t.split(/\s+/).length;state.xp+=30;state.quest=Math.max(state.quest,3);save();refresh();
+ el.value="";alert("Message sent. The hotel replied: 'Merci, we have noted the delay.'");
+};
+window.openCustomize=()=>{
+ document.getElementById("customizeModal").classList.add("show");
+ for(const id of ["skin","outfit","hair","style"])document.getElementById(id).value=state.character[id];
+};
+window.applyCharacter=()=>{
+ for(const id of ["skin","outfit","hair","style"])state.character[id]=document.getElementById(id).value;
+ state.character.skin=Number(state.character.skin);state.character.outfit=Number(state.character.outfit);state.character.hair=Number(state.character.hair);
+ body.material.color.setHex(state.character.outfit);head.material.color.setHex(state.character.skin);hair.material.color.setHex(state.character.hair);
+ save();closeModal("customizeModal");
+};
+window.openMapHelp=()=>alert("Map: blue dot = you. Airport terminal is the large building near the center. Taxi pickup is south/east of the terminal. Explore freely.");
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+// Touch joystick
+const touch=document.createElement("div");touch.id="touch";touch.innerHTML='<div class="stick"></div>';document.body.appendChild(touch);
+let touchStart=null;
+touch.addEventListener("touchstart",e=>{touchStart=e.touches[0];e.preventDefault()},{passive:false});
+touch.addEventListener("touchmove",e=>{
+ if(!touchStart)return;const t=e.touches[0],dx=t.clientX-touchStart.clientX,dy=t.clientY-touchStart.clientY;
+ keys.w=dy<-12;keys.s=dy>12;keys.a=dx<-12;keys.d=dx>12;e.preventDefault();
+},{passive:false});
+touch.addEventListener("touchend",()=>{for(const k of ["w","a","s","d"])keys[k]=false;touchStart=null});
+</script>
+</body>
+</html>
